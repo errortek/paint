@@ -258,9 +258,15 @@ public class PaintActivity extends Activity {
             final Palette pal = new Palette(NUM_COLORS);
             int[] colors = pal.getColors();
             int[] allColor = new int[colors.length + 2];
-            System.arraycopy(colors, 0, allColor, 2, colors.length);
+            //System.arraycopy(colors, 0, allColor, 2, colors.length);
             allColor[0] = Color.BLACK;
             allColor[1] = Color.WHITE;
+            allColor[2] = Color.BLUE;
+            allColor[3] = Color.RED;
+            allColor[4] = Color.GREEN;
+            allColor[5] = Color.YELLOW;
+            allColor[6] = Color.MAGENTA;
+            allColor[7] = Color.GRAY;
             for (final int c : allColor) {
                 final BrushPropertyDrawable icon = new BrushPropertyDrawable(this);
                 icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
