@@ -98,7 +98,7 @@ public class Painting : View, SpotFilter.Plotter {
     private var _lastR = 0f
     private var _insets: WindowInsets? = null
 
-    private var _brushWidth = 100f
+    private var _brushWidth = 50f
 
     private var _filter = SpotFilter(10, 0.5f, 0.9f, this)
 
