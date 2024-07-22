@@ -89,6 +89,15 @@
             app:tint="@color/p_toolbar_icon_color" />
 
         <ImageButton
+            android:id="@+id/btnSave"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/p_toolbar_button_bg"
+            android:src="@drawable/p_ic_save"
+            app:tint="@color/p_toolbar_icon_color" />
+
+        <ImageButton
             android:id="@+id/btnClear"
             android:layout_width="48dp"
             android:layout_height="match_parent"

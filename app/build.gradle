@@ -22,7 +22,7 @@ android {
 	compileSdk = 35
 
 	defaultConfig {
-		applicationId = "com.jpb.android.pain"
+		applicationId = "com.jpb.android.paint"
 		minSdk = 22
 		targetSdk = 35
 		versionCode = 10
