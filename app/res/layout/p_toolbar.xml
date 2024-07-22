@@ -16,20 +16,19 @@
 -->
 <com.jpb.android.paint.CutoutAvoidingToolbar
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="50dp"
     android:orientation="horizontal"
     android:gravity="left"
     android:background="@drawable/p_toolbar_bg"
-    android:elevation="20dp"
-    >
+    android:elevation="20dp">
 
     <Space
         android:tag="cutoutLeft"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -44,18 +43,16 @@
             android:layout_width="48dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:tint="@color/p_toolbar_icon_color"
             android:background="@drawable/p_toolbar_button_bg"
-            />
+            app:tint="@color/p_toolbar_icon_color" />
 
         <ImageButton
             android:id="@+id/btnColor"
             android:layout_width="48dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:tint="@color/p_toolbar_icon_color"
             android:background="@drawable/p_toolbar_button_bg"
-            />
+            app:tint="@color/p_toolbar_icon_color" />
 
         <ImageButton
             android:id="@+id/btnSample"
@@ -63,8 +60,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/p_toolbar_button_bg"
-            android:tint="@color/p_toolbar_icon_color"
-            android:src="@drawable/p_ic_dropper" />
+            android:src="@drawable/p_ic_dropper"
+            app:tint="@color/p_toolbar_icon_color" />
 
     </LinearLayout>
 
@@ -88,8 +85,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/p_toolbar_button_bg"
-            android:tint="@color/p_toolbar_icon_color"
-            android:src="@drawable/p_ic_hourglass" />
+            android:src="@drawable/p_ic_hourglass"
+            app:tint="@color/p_toolbar_icon_color" />
 
         <ImageButton
             android:id="@+id/btnClear"
@@ -97,8 +94,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/p_toolbar_button_bg"
-            android:tint="@color/p_toolbar_icon_color"
-            android:src="@drawable/p_ic_clear" />
+            android:src="@drawable/p_ic_clear"
+            app:tint="@color/p_toolbar_icon_color" />
 
     </LinearLayout>
 
