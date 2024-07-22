@@ -48,19 +48,19 @@ public class Painting : View, SpotFilter.Plotter {
         val ZEN_RATE = TimeUnit.SECONDS.toMillis(2)  // how often to apply the fade
         val ZEN_FADE = Math.max(1f, ZEN_RATE / FADE_MINS * 255f)
 
-        val FADE_TO_WHITE_CF = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
-                1f, 0f, 0f, 0f, ZEN_FADE,
-                0f, 1f, 0f, 0f, ZEN_FADE,
-                0f, 0f, 1f, 0f, ZEN_FADE,
-                0f, 0f, 0f, 1f, 0f
-        )))
-
-        val FADE_TO_BLACK_CF = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
-                1f, 0f, 0f, 0f, -ZEN_FADE,
-                0f, 1f, 0f, 0f, -ZEN_FADE,
-                0f, 0f, 1f, 0f, -ZEN_FADE,
-                0f, 0f, 0f, 1f, 0f
-        )))
+//        val FADE_TO_WHITE_CF = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
+//                1f, 0f, 0f, 0f, ZEN_FADE,
+//                0f, 1f, 0f, 0f, ZEN_FADE,
+//                0f, 0f, 1f, 0f, ZEN_FADE,
+//                0f, 0f, 0f, 1f, 0f
+//        )))
+//
+//        val FADE_TO_BLACK_CF = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
+//                1f, 0f, 0f, 0f, -ZEN_FADE,
+//                0f, 1f, 0f, 0f, -ZEN_FADE,
+//                0f, 0f, 1f, 0f, -ZEN_FADE,
+//                0f, 0f, 0f, 1f, 0f
+//        )))
 
         val INVERT_CF = ColorMatrixColorFilter(ColorMatrix(floatArrayOf(
                 -1f, 0f, 0f, 0f, 255f,
@@ -107,11 +107,6 @@ public class Painting : View, SpotFilter.Plotter {
         override fun run() {
             val c = _paintCanvas
             if (c != null) {
-                pt.colorFilter =
-                    if (paperColor.and(0xFF) > 0x80)
-                        FADE_TO_WHITE_CF
-                    else
-                        FADE_TO_BLACK_CF
 
                 synchronized(_bitmapLock) {
                     c.drawBitmap(bitmap!!, 0f, 0f, pt)
