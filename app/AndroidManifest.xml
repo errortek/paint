@@ -22,7 +22,13 @@
             android:configChanges="orientation|keyboardHidden|screenSize|uiMode"
             android:exported="true"
             android:label="@string/p_app_name"
-            android:theme="@style/PAppTheme" />
+            android:theme="@style/PAppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
