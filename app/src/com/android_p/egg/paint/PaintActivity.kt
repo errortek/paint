@@ -408,6 +408,7 @@ class PaintActivity : Activity() {
         setupViews(null)
         refreshNightMode(resources.configuration)
         val aboutBtn: ImageButton = findViewById(R.id.btnAbout)
+        val saveBtn: ImageButton = findViewById(R.id.btnSave)
         aboutBtn.setOnClickListener {
             val builder = MaterialAlertDialogBuilder(this@PaintActivity)
             builder
@@ -418,6 +419,56 @@ class PaintActivity : Activity() {
                 }
             val dialog: AlertDialog = builder.create()
             dialog.show()
+        }
+        saveBtn.setOnClickListener{
+            painting!!.isDrawingCacheEnabled = true
+            painting!!.invalidate()
+            val path = Environment.DIRECTORY_PICTURES
+            val fos: OutputStream
+            var imageBitmap: Bitmap
+            val outputStream: OutputStream
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = this@PaintActivity.contentResolver
+                val contentValues = ContentValues()
+                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "Image_" + ".jpg")
+                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                //contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_PICTURES + File.separator+"TestFolder");
+                val imageUri =
+                    resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                try {
+                    outputStream = Objects.requireNonNull(imageUri)
+                        ?.let { resolver.openOutputStream(it) }!!
+                    Objects.requireNonNull(painting!!.bitmap)
+                        ?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    Objects.requireNonNull(outputStream)
+                    Toast.makeText(this@PaintActivity, "Image Saved", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@PaintActivity,
+                        "Image Not Not  Saved: \n $e",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    e.printStackTrace()
+                }
+            } else {
+                val imagesDir =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        .toString()
+                val image = File(imagesDir, "drawing.jpg")
+                try {
+                    fos = FileOutputStream(image)
+                } catch (e: FileNotFoundException) {
+                    throw RuntimeException(e)
+                }
+                checkNotNull(fos)
+                painting!!.drawingCache
+                    .compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                try {
+                    Objects.requireNonNull<OutputStream>(fos).close()
+                } catch (e: IOException) {
+                    throw RuntimeException(e)
+                }
+            }
         }
     } //    @Override
     //    public void onPostResume() {
