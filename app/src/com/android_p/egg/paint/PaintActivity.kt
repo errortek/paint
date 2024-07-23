@@ -13,412 +13,392 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.jpb.android.paint
 
-package com.jpb.android.paint;
+import android.app.Activity
+import android.content.ContentValues
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.os.Build
+import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.view.MotionEvent
+import android.view.View
+import android.view.View.OnTouchListener
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.view.animation.OvershootInterpolator
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.Magnifier
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.util.Objects
+import kotlin.math.pow
 
-import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.animation.OvershootInterpolator;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.Magnifier;
-import android.widget.Toast;
+class PaintActivity : Activity() {
+    private var painting: Painting? = null
+    private var toolbar: CutoutAvoidingToolbar? = null
+    private var brushes: LinearLayout? = null
+    private var colors: LinearLayout? = null
+    private var magnifier: Magnifier? = null
+    private var sampling = false
 
-import androidx.core.content.ContextCompat;
-
-import com.jpb.android.paint.R;
-
-import static android.view.MotionEvent.ACTION_CANCEL;
-import static android.view.MotionEvent.ACTION_DOWN;
-import static android.view.MotionEvent.ACTION_MOVE;
-import static android.view.MotionEvent.ACTION_UP;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Objects;
-
-public class PaintActivity extends Activity {
-    private static final float MAX_BRUSH_WIDTH_DP = 100f;
-    private static final float MIN_BRUSH_WIDTH_DP = 1f;
-
-    private static final int NUM_BRUSHES = 6;
-    private static final int NUM_COLORS = 6;
-
-    private Painting painting = null;
-    private CutoutAvoidingToolbar toolbar = null;
-    private LinearLayout brushes = null;
-    private LinearLayout colors = null;
-    private Magnifier magnifier = null;
-    private boolean sampling = false;
-
-    private View.OnClickListener buttonHandler = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            int id = view.getId();
-            if (id == R.id.btnBrush) {
-                view.setSelected(true);
-                hideToolbar(colors);
-                toggleToolbar(brushes);
-            } else if (id == R.id.btnColor) {
-                view.setSelected(true);
-                hideToolbar(brushes);
-                toggleToolbar(colors);
-            } else if (id == R.id.btnClear) {
-                painting.clear();
-            } else if (id == R.id.btnSample) {
-                sampling = true;
-                view.setSelected(true);
-            } else if (id == R.id.btnZen) {
-                painting.setZenMode(!painting.getZenMode());
-                view.animate()
-                        .setStartDelay(200)
-                        .setInterpolator(new OvershootInterpolator())
-                        .rotation(painting.getZenMode() ? 0f : 90f);
-            } else if (id == R.id.btnSave) {
-                painting.setDrawingCacheEnabled(true);
-                painting.invalidate();
-                String path = Environment.DIRECTORY_PICTURES;
-                OutputStream fos;
-                Bitmap imageBitmap;
-                OutputStream outputStream ;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    ContentResolver resolver = PaintActivity.this.getContentResolver();
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME,"Image_"+".jpg");
-                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE,"image/jpeg");
-                    //contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_PICTURES + File.separator+"TestFolder");
-                    Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
-                    try {
-                        outputStream =  resolver.openOutputStream(Objects.requireNonNull(imageUri) );
-                        Objects.requireNonNull(painting.getBitmap()).compress(Bitmap.CompressFormat.JPEG,100,outputStream);
-                        Objects.requireNonNull(outputStream);
-                        Toast.makeText(PaintActivity.this, "Image Saved", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Toast.makeText(PaintActivity.this, "Image Not Not  Saved: \n "+e, Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                } else {
-                    String imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                    File image = new File(imagesDir, "drawing.jpg");
-                    try {
-                        fos = new FileOutputStream(image);
-                    } catch (FileNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                    assert fos != null;
-                    painting.getDrawingCache()
-                            .compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                    try {
-                        Objects.requireNonNull(fos).close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+    private val buttonHandler = View.OnClickListener { view ->
+        val id = view.id
+        if (id == R.id.btnBrush) {
+            view.isSelected = true
+            hideToolbar(colors)
+            toggleToolbar(brushes)
+        } else if (id == R.id.btnColor) {
+            view.isSelected = true
+            hideToolbar(brushes)
+            toggleToolbar(colors)
+        } else if (id == R.id.btnClear) {
+            painting!!.clear()
+        } else if (id == R.id.btnSample) {
+            sampling = true
+            view.isSelected = true
+        } else if (id == R.id.btnZen) {
+            painting!!.zenMode = !painting!!.zenMode
+            view.animate()
+                .setStartDelay(200)
+                .setInterpolator(OvershootInterpolator())
+                .rotation(if (painting!!.zenMode) 0f else 90f)
+        } else if (id == R.id.btnSave) {
+            painting!!.isDrawingCacheEnabled = true
+            painting!!.invalidate()
+            val path = Environment.DIRECTORY_PICTURES
+            val fos: OutputStream
+            var imageBitmap: Bitmap
+            val outputStream: OutputStream
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = this@PaintActivity.contentResolver
+                val contentValues = ContentValues()
+                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "Image_" + ".jpg")
+                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                //contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_PICTURES + File.separator+"TestFolder");
+                val imageUri =
+                    resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                try {
+                    outputStream = Objects.requireNonNull(imageUri)
+                        ?.let { resolver.openOutputStream(it) }!!
+                    Objects.requireNonNull(painting!!.bitmap)
+                        ?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    Objects.requireNonNull(outputStream)
+                    Toast.makeText(this@PaintActivity, "Image Saved", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@PaintActivity,
+                        "Image Not Not  Saved: \n $e",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    e.printStackTrace()
+                }
+            } else {
+                val imagesDir =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        .toString()
+                val image = File(imagesDir, "drawing.jpg")
+                try {
+                    fos = FileOutputStream(image)
+                } catch (e: FileNotFoundException) {
+                    throw RuntimeException(e)
+                }
+                checkNotNull(fos)
+                painting!!.drawingCache
+                    .compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                try {
+                    Objects.requireNonNull<OutputStream>(fos).close()
+                } catch (e: IOException) {
+                    throw RuntimeException(e)
                 }
             }
         }
-    };
-
-    private void showToolbar(View bar) {
-        if (bar.getVisibility() != View.GONE) return;
-        bar.setVisibility(View.VISIBLE);
-        bar.setTranslationY(toolbar.getHeight() / 2);
-        bar.animate()
-                .translationY(toolbar.getHeight())
-                .alpha(1f)
-                .setDuration(220)
-                .start();
     }
 
-    private void hideToolbar(View bar) {
-        if (bar.getVisibility() != View.VISIBLE) return;
+    private fun showToolbar(bar: View?) {
+        if (bar!!.visibility != View.GONE) return
+        bar.visibility = View.VISIBLE
+        bar.translationY = (toolbar!!.height / 2).toFloat()
         bar.animate()
-                .translationY(toolbar.getHeight() / 2)
-                .alpha(0f)
-                .setDuration(150)
-                .withEndAction(new Runnable() {
-                    @Override
-                    public void run() {
-                        bar.setVisibility(View.GONE);
-                    }
-                })
-                .start();
+            .translationY(toolbar!!.height.toFloat())
+            .alpha(1f)
+            .setDuration(220)
+            .start()
     }
 
-    private void toggleToolbar(View bar) {
-        if (bar.getVisibility() == View.VISIBLE) {
-            hideToolbar(bar);
+    private fun hideToolbar(bar: View?) {
+        if (bar!!.visibility != View.VISIBLE) return
+        bar.animate()
+            .translationY((toolbar!!.height / 2).toFloat())
+            .alpha(0f)
+            .setDuration(150)
+            .withEndAction { bar.visibility = View.GONE }
+            .start()
+    }
+
+    private fun toggleToolbar(bar: View?) {
+        if (bar!!.visibility == View.VISIBLE) {
+            hideToolbar(bar)
         } else {
-            showToolbar(bar);
+            showToolbar(bar)
         }
     }
 
-    private BrushPropertyDrawable widthButtonDrawable;
-    private BrushPropertyDrawable colorButtonDrawable;
-    private float maxBrushWidth, minBrushWidth;
-    private int nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED;
+    private var widthButtonDrawable: BrushPropertyDrawable? = null
+    private var colorButtonDrawable: BrushPropertyDrawable? = null
+    private var maxBrushWidth = 0f
+    private var minBrushWidth = 0f
+    private var nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED
 
-    static final float lerp(float f, float a, float b) {
-        return a + (b - a) * f;
-    }
+    fun setupViews(oldPainting: Painting?) {
+        setContentView(R.layout.p_activity_paint)
 
-    void setupViews(Painting oldPainting) {
-        setContentView(R.layout.p_activity_paint);
+        painting = oldPainting ?: Painting(this)
+        (findViewById<View>(R.id.contentView) as FrameLayout).addView(
+            painting,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
 
-        painting = oldPainting != null ? oldPainting : new Painting(this);
-        ((FrameLayout) findViewById(R.id.contentView)).addView(painting,
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
+        painting!!.paperColor = ContextCompat.getColor(this, R.color.p_paper_color)
+        painting!!.setPaintColor(ContextCompat.getColor(this, R.color.p_paint_color))
 
-        painting.setPaperColor(ContextCompat.getColor(this, R.color.p_paper_color));
-        painting.setPaintColor(ContextCompat.getColor(this, R.color.p_paint_color));
-
-        toolbar = findViewById(R.id.toolbar);
-        brushes = findViewById(R.id.brushes);
-        colors = findViewById(R.id.colors);
+        toolbar = findViewById(R.id.toolbar)
+        brushes = findViewById(R.id.brushes)
+        colors = findViewById(R.id.colors)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            magnifier = new Magnifier(painting);
+            magnifier = Magnifier(painting!!)
         }
 
-        painting.setOnTouchListener(
-                new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent event) {
-                        switch (event.getActionMasked()) {
-                            case ACTION_DOWN:
-                            case ACTION_MOVE:
-                                if (sampling) {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                        magnifier.show(event.getX(), event.getY());
-                                    }
-                                    colorButtonDrawable.setWellColor(
-                                            painting.sampleAt(event.getX(), event.getY()));
-                                    return true;
-                                }
-                                break;
-                            case ACTION_CANCEL:
-                                if (sampling) {
-                                    findViewById(R.id.btnSample).setSelected(false);
-                                    sampling = false;
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                        magnifier.dismiss();
-                                    }
-                                    return true;// intercept
-                                }
-                                break;
-                            case ACTION_UP:
-                                if (sampling) {
-                                    findViewById(R.id.btnSample).setSelected(false);
-                                    sampling = false;
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                        magnifier.dismiss();
-                                    }
-                                    painting.setPaintColor(
-                                            painting.sampleAt(event.getX(), event.getY()));
-                                    refreshBrushAndColor();
-                                    return true;// intercept
-                                }
-                                break;
+        painting!!.setOnTouchListener(
+            OnTouchListener { view, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> if (sampling) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            magnifier!!.show(event.x, event.y)
                         }
-                        return false; // allow view to continue handling
+                        colorButtonDrawable!!.setWellColor(
+                            painting!!.sampleAt(event.x, event.y)
+                        )
+                        return@OnTouchListener true
                     }
-                });
 
-        findViewById(R.id.btnBrush).setOnClickListener(buttonHandler);
-        findViewById(R.id.btnColor).setOnClickListener(buttonHandler);
-        findViewById(R.id.btnClear).setOnClickListener(buttonHandler);
-        findViewById(R.id.btnSample).setOnClickListener(buttonHandler);
-        findViewById(R.id.btnZen).setOnClickListener(buttonHandler);
+                    MotionEvent.ACTION_CANCEL -> if (sampling) {
+                        findViewById<View>(R.id.btnSample).isSelected = false
+                        sampling = false
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            magnifier!!.dismiss()
+                        }
+                        return@OnTouchListener true // intercept
+                    }
 
-        findViewById(R.id.btnColor).setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                colors.removeAllViews();
-                showToolbar(colors);
-                refreshBrushAndColor();
-                return true;
-            }
-        });
+                    MotionEvent.ACTION_UP -> if (sampling) {
+                        findViewById<View>(R.id.btnSample).isSelected = false
+                        sampling = false
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            magnifier!!.dismiss()
+                        }
+                        painting!!.setPaintColor(
+                            painting!!.sampleAt(event.x, event.y)
+                        )
+                        refreshBrushAndColor()
+                        return@OnTouchListener true // intercept
+                    }
+                }
+                false // allow view to continue handling
+            })
 
-        findViewById(R.id.btnClear).setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                painting.invertContents();
-                return true;
-            }
-        });
+        findViewById<View>(R.id.btnBrush).setOnClickListener(buttonHandler)
+        findViewById<View>(R.id.btnColor).setOnClickListener(buttonHandler)
+        findViewById<View>(R.id.btnClear).setOnClickListener(buttonHandler)
+        findViewById<View>(R.id.btnSample).setOnClickListener(buttonHandler)
+        findViewById<View>(R.id.btnZen).setOnClickListener(buttonHandler)
 
-        widthButtonDrawable = new BrushPropertyDrawable(this);
-        widthButtonDrawable.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
-        colorButtonDrawable = new BrushPropertyDrawable(this);
-        colorButtonDrawable.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
+        findViewById<View>(R.id.btnColor).setOnLongClickListener {
+            colors?.removeAllViews()
+            showToolbar(colors)
+            refreshBrushAndColor()
+            true
+        }
 
-        ((ImageButton) findViewById(R.id.btnBrush)).setImageDrawable(widthButtonDrawable);
-        ((ImageButton) findViewById(R.id.btnColor)).setImageDrawable(colorButtonDrawable);
+        findViewById<View>(R.id.btnClear).setOnLongClickListener {
+            painting!!.invertContents()
+            true
+        }
 
-        refreshBrushAndColor();
+        widthButtonDrawable = BrushPropertyDrawable(this)
+        widthButtonDrawable!!.setFrameColor(
+            ContextCompat.getColor(
+                this,
+                R.color.p_toolbar_icon_color
+            )
+        )
+        colorButtonDrawable = BrushPropertyDrawable(this)
+        colorButtonDrawable!!.setFrameColor(
+            ContextCompat.getColor(
+                this,
+                R.color.p_toolbar_icon_color
+            )
+        )
+
+        (findViewById<View>(R.id.btnBrush) as ImageButton).setImageDrawable(widthButtonDrawable)
+        (findViewById<View>(R.id.btnColor) as ImageButton).setImageDrawable(colorButtonDrawable)
+
+        refreshBrushAndColor()
     }
 
-    private void refreshBrushAndColor() {
-        final LinearLayout.LayoutParams button_lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT);
-        button_lp.weight = 1f;
-        if (brushes.getChildCount() == 0) {
-            for (int i = 0; i < NUM_BRUSHES; i++) {
-                final BrushPropertyDrawable icon = new BrushPropertyDrawable(this);
-                icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
+    private fun refreshBrushAndColor() {
+        val button_lp = LinearLayout.LayoutParams(
+            0, ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        button_lp.weight = 1f
+        if (brushes!!.childCount == 0) {
+            for (i in 0 until NUM_BRUSHES) {
+                val icon = BrushPropertyDrawable(this)
+                icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
                 // exponentially increasing brush size
-                final float width = lerp(
-                        (float) Math.pow((float) i / NUM_BRUSHES, 2f), minBrushWidth,
-                        maxBrushWidth);
-                icon.setWellScale(width / maxBrushWidth);
-                icon.setWellColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
-                final ImageButton button = new ImageButton(this);
-                button.setImageDrawable(icon);
-                button.setBackground(ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg));
-                button.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                brushes.setSelected(false);
-                                hideToolbar(brushes);
-                                painting.setBrushWidth(width);
-                                refreshBrushAndColor();
-                            }
-                        });
-                brushes.addView(button, button_lp);
+                val width = lerp(
+                    (i.toFloat() / NUM_BRUSHES).pow(2.0f), minBrushWidth,
+                    maxBrushWidth
+                )
+                icon.setWellScale(width / maxBrushWidth)
+                icon.setWellColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
+                val button = ImageButton(this)
+                button.setImageDrawable(icon)
+                button.background = ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg)
+                button.setOnClickListener {
+                    brushes!!.isSelected = false
+                    hideToolbar(brushes)
+                    painting!!.setBrushWidth(width)
+                    refreshBrushAndColor()
+                }
+                brushes!!.addView(button, button_lp)
             }
         }
 
-        if (colors.getChildCount() == 0) {
-            final Palette pal = new Palette(NUM_COLORS);
-            int[] colors = pal.getColors();
-            int[] allColor = new int[colors.length + 2];
+        if (colors!!.childCount == 0) {
+            val pal = Palette(NUM_COLORS)
+            val colors = pal.colors
+            val allColor = IntArray(colors.size + 2)
             //System.arraycopy(colors, 0, allColor, 2, colors.length);
-            allColor[0] = Color.BLACK;
-            allColor[1] = Color.WHITE;
-            allColor[2] = Color.BLUE;
-            allColor[3] = Color.RED;
-            allColor[4] = Color.GREEN;
-            allColor[5] = Color.YELLOW;
-            allColor[6] = Color.MAGENTA;
-            allColor[7] = Color.GRAY;
-            for (final int c : allColor) {
-                final BrushPropertyDrawable icon = new BrushPropertyDrawable(this);
-                icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color));
-                icon.setWellColor(c);
-                final ImageButton button = new ImageButton(this);
-                button.setImageDrawable(icon);
-                button.setBackground(ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg));
-                button.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                PaintActivity.this.colors.setSelected(false);
-                                hideToolbar(PaintActivity.this.colors);
-                                painting.setPaintColor(c);
-                                refreshBrushAndColor();
-                            }
-                        });
-                this.colors.addView(button, button_lp);
+            allColor[0] = Color.BLACK
+            allColor[1] = Color.WHITE
+            allColor[2] = Color.BLUE
+            allColor[3] = Color.RED
+            allColor[4] = Color.GREEN
+            allColor[5] = Color.YELLOW
+            allColor[6] = Color.MAGENTA
+            allColor[7] = Color.GRAY
+            for (c in allColor) {
+                val icon = BrushPropertyDrawable(this)
+                icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
+                icon.setWellColor(c)
+                val button = ImageButton(this)
+                button.setImageDrawable(icon)
+                button.background = ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg)
+                button.setOnClickListener {
+                    this@PaintActivity.colors!!.isSelected = false
+                    hideToolbar(this@PaintActivity.colors)
+                    painting!!.setPaintColor(c)
+                    refreshBrushAndColor()
+                }
+                this.colors!!.addView(button, button_lp)
             }
         }
 
-        widthButtonDrawable.setWellScale(painting.getBrushWidth() / maxBrushWidth);
-        widthButtonDrawable.setWellColor(painting.getPaintColor());
-        colorButtonDrawable.setWellColor(painting.getPaintColor());
+        widthButtonDrawable!!.setWellScale(painting!!.getBrushWidth() / maxBrushWidth)
+        widthButtonDrawable!!.setWellColor(painting!!.getPaintColor())
+        colorButtonDrawable!!.setWellColor(painting!!.getPaintColor())
     }
 
-    private void refreshNightMode(Configuration config) {
-        int newNightMode =
-                (config.uiMode & Configuration.UI_MODE_NIGHT_MASK);
+    private fun refreshNightMode(config: Configuration) {
+        val newNightMode =
+            (config.uiMode and Configuration.UI_MODE_NIGHT_MASK)
         if (nightMode != newNightMode) {
             if (nightMode != Configuration.UI_MODE_NIGHT_UNDEFINED) {
-                painting.invertContents();
+                painting!!.invertContents()
 
-                ((ViewGroup) painting.getParent()).removeView(painting);
-                setupViews(painting);
+                (painting!!.parent as ViewGroup).removeView(painting)
+                setupViews(painting)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    final View decorView = getWindow().getDecorView();
-                    int decorSUIV = decorView.getSystemUiVisibility();
+                    val decorView = window.decorView
+                    val decorSUIV = decorView.systemUiVisibility
 
                     if (newNightMode == Configuration.UI_MODE_NIGHT_YES) {
-                        decorView.setSystemUiVisibility(
-                                decorSUIV & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+                        decorView.systemUiVisibility =
+                            decorSUIV and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
                     } else {
-                        decorView.setSystemUiVisibility(
-                                decorSUIV | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+                        decorView.systemUiVisibility =
+                            decorSUIV or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
                     }
                 }
             }
-            nightMode = newNightMode;
+            nightMode = newNightMode
         }
     }
 
-//    public PaintActivity() {
-//
-//    }
+    //    public PaintActivity() {
+    //
+    //    }
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
 
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-
-        painting.onTrimMemory();
+        painting!!.onTrimMemory()
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
 
-        refreshNightMode(newConfig);
+        refreshNightMode(newConfig)
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        val lp = window.attributes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+            lp.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
         }
         // add safely space
 //        lp.flags = lp.flags
 //                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
 //                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-        getWindow().setAttributes(lp);
+        window.attributes = lp
 
-        maxBrushWidth = MAX_BRUSH_WIDTH_DP * getResources().getDisplayMetrics().density;
-        minBrushWidth = MIN_BRUSH_WIDTH_DP * getResources().getDisplayMetrics().density;
+        maxBrushWidth = MAX_BRUSH_WIDTH_DP * resources.displayMetrics.density
+        minBrushWidth = MIN_BRUSH_WIDTH_DP * resources.displayMetrics.density
 
-        setupViews(null);
-        refreshNightMode(getResources().getConfiguration());
+        setupViews(null)
+        refreshNightMode(resources.configuration)
+    } //    @Override
+    //    public void onPostResume() {
+    //        super.onPostResume();
+    //    }
+
+    companion object {
+        private const val MAX_BRUSH_WIDTH_DP = 100f
+        private const val MIN_BRUSH_WIDTH_DP = 1f
+
+        private const val NUM_BRUSHES = 6
+        private const val NUM_COLORS = 6
+
+        fun lerp(f: Float, a: Float, b: Float): Float {
+            return a + (b - a) * f
+        }
     }
-
-//    @Override
-//    public void onPostResume() {
-//        super.onPostResume();
-//    }
-
 }
