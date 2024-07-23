@@ -17,6 +17,7 @@ package com.jpb.android.paint
 
 import android.app.Activity
 import android.content.ContentValues
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -30,12 +31,15 @@ import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Magnifier
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -43,6 +47,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.Objects
 import kotlin.math.pow
+
 
 class PaintActivity : Activity() {
     private var painting: Painting? = null
@@ -122,6 +127,23 @@ class PaintActivity : Activity() {
                     throw RuntimeException(e)
                 }
             }
+        } else if (id == R.id.btnAbout) {
+            val btnAbout: ImageButton = findViewById(R.id.btnAbout)
+            val builder = MaterialAlertDialogBuilder(btnAbout.getContext())
+            builder
+                .setTitle("I am the title")
+                .setPositiveButton("Positive") { dialog, which ->
+                    // Do something.
+                }
+                .setNegativeButton("Negative") { dialog, which ->
+                    // Do something else.
+                }
+                .setItems(arrayOf("Item One", "Item Two", "Item Three")) { dialog, which ->
+                    // Do something on item tapped.
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
         }
     }
 
@@ -368,6 +390,22 @@ class PaintActivity : Activity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val builder = MaterialAlertDialogBuilder(this@PaintActivity)
+        builder
+            .setTitle("I am the title")
+            .setPositiveButton("Positive") { dialog, which ->
+                // Do something.
+            }
+            .setNegativeButton("Negative") { dialog, which ->
+                // Do something else.
+            }
+            .setItems(arrayOf("Item One", "Item Two", "Item Three")) { dialog, which ->
+                // Do something on item tapped.
+            }
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
 
         val lp = window.attributes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
