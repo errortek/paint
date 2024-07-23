@@ -17,10 +17,19 @@
 package com.jpb.android.paint;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +39,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Magnifier;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -39,6 +49,13 @@ import static android.view.MotionEvent.ACTION_CANCEL;
 import static android.view.MotionEvent.ACTION_DOWN;
 import static android.view.MotionEvent.ACTION_MOVE;
 import static android.view.MotionEvent.ACTION_UP;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Objects;
 
 public class PaintActivity extends Activity {
     private static final float MAX_BRUSH_WIDTH_DP = 100f;
@@ -77,6 +94,46 @@ public class PaintActivity extends Activity {
                         .setStartDelay(200)
                         .setInterpolator(new OvershootInterpolator())
                         .rotation(painting.getZenMode() ? 0f : 90f);
+            } else if (id == R.id.btnSave) {
+                painting.setDrawingCacheEnabled(true);
+                painting.invalidate();
+                String path = Environment.DIRECTORY_PICTURES;
+                OutputStream fos;
+                Bitmap imageBitmap;
+                OutputStream outputStream ;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentResolver resolver = PaintActivity.this.getContentResolver();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME,"Image_"+".jpg");
+                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE,"image/jpeg");
+                    //contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_PICTURES + File.separator+"TestFolder");
+                    Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues);
+                    try {
+                        outputStream =  resolver.openOutputStream(Objects.requireNonNull(imageUri) );
+                        Objects.requireNonNull(painting.getBitmap()).compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+                        Objects.requireNonNull(outputStream);
+                        Toast.makeText(PaintActivity.this, "Image Saved", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(PaintActivity.this, "Image Not Not  Saved: \n "+e, Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                } else {
+                    String imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+                    File image = new File(imagesDir, "drawing.jpg");
+                    try {
+                        fos = new FileOutputStream(image);
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    assert fos != null;
+                    painting.getDrawingCache()
+                            .compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                    try {
+                        Objects.requireNonNull(fos).close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
     };
