@@ -129,7 +129,7 @@ class PaintActivity : Activity() {
             }
         } else if (id == R.id.btnAbout) {
             val btnAbout: ImageButton = findViewById(R.id.btnAbout)
-            val builder = MaterialAlertDialogBuilder(btnAbout.getContext())
+            val builder = MaterialAlertDialogBuilder(this@PaintActivity)
             builder
                 .setTitle("I am the title")
                 .setPositiveButton("Positive") { dialog, which ->
@@ -391,22 +391,6 @@ class PaintActivity : Activity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val builder = MaterialAlertDialogBuilder(this@PaintActivity)
-        builder
-            .setTitle("I am the title")
-            .setPositiveButton("Positive") { dialog, which ->
-                // Do something.
-            }
-            .setNegativeButton("Negative") { dialog, which ->
-                // Do something else.
-            }
-            .setItems(arrayOf("Item One", "Item Two", "Item Three")) { dialog, which ->
-                // Do something on item tapped.
-            }
-
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
-
         val lp = window.attributes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             lp.layoutInDisplayCutoutMode =
@@ -423,6 +407,24 @@ class PaintActivity : Activity() {
 
         setupViews(null)
         refreshNightMode(resources.configuration)
+        val aboutBtn: ImageButton = findViewById(R.id.btnAbout)
+        aboutBtn.setOnClickListener {
+            val builder = MaterialAlertDialogBuilder(this@PaintActivity)
+            builder
+                .setTitle("I am the title")
+                .setPositiveButton("Positive") { dialog, which ->
+                    // Do something.
+                }
+                .setNegativeButton("Negative") { dialog, which ->
+                    // Do something else.
+                }
+                .setItems(arrayOf("Item One", "Item Two", "Item Three")) { dialog, which ->
+                    // Do something on item tapped.
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
+        }
     } //    @Override
     //    public void onPostResume() {
     //        super.onPostResume();

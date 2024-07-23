@@ -15,7 +15,7 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="PAppTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar.Fullscreen">
+    <style name="PAppTheme" parent="@style/Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowLayoutInDisplayCutoutMode" tools:ignore="NewApi">shortEdges</item>
         <item name="android:windowLightNavigationBar" tools:ignore="NewApi">true</item>
     </style>
