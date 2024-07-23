@@ -411,17 +411,11 @@ class PaintActivity : Activity() {
         aboutBtn.setOnClickListener {
             val builder = MaterialAlertDialogBuilder(this@PaintActivity)
             builder
-                .setTitle("I am the title")
-                .setPositiveButton("Positive") { dialog, which ->
+                .setTitle("About")
+                .setMessage("jpb Paint, version 1.0\nBased on the Android 9 \"Pie\" Easter egg, PAINT.APK\nLicensed under the Apache License, version 2.0")
+                .setPositiveButton("OK") { dialog, which ->
                     // Do something.
                 }
-                .setNegativeButton("Negative") { dialog, which ->
-                    // Do something else.
-                }
-                .setItems(arrayOf("Item One", "Item Two", "Item Three")) { dialog, which ->
-                    // Do something on item tapped.
-                }
-
             val dialog: AlertDialog = builder.create()
             dialog.show()
         }
