@@ -17,10 +17,10 @@ package com.jpb.android.paint
 
 import android.app.Activity
 import android.content.ContentValues
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -31,7 +31,6 @@ import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -47,7 +46,6 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.Objects
 import kotlin.math.pow
-
 
 class PaintActivity : Activity() {
     private var painting: Painting? = null
@@ -276,11 +274,39 @@ class PaintActivity : Activity() {
                 }
                 this.colors!!.addView(button, button_lp)
             }
+            val icon = BrushPropertyDrawable(this)
+            icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
+            icon.wellPaint.setTypeface(Typeface.DEFAULT)
+            val button = ImageButton(this)
+            button.setImageDrawable(icon)
+            button.background = ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg)
+            button.setOnClickListener {
+                this@PaintActivity.colors!!.isSelected = false
+                hideToolbar(this@PaintActivity.colors)
+                var c = Color.RED
+
+                painting!!.setPaintColor(c)
+                refreshBrushAndColor()
+        }
+            this.colors!!.addView(button, button_lp)
+
         }
 
         widthButtonDrawable!!.setWellScale(painting!!.getBrushWidth() / maxBrushWidth)
         widthButtonDrawable!!.setWellColor(painting!!.getPaintColor())
         colorButtonDrawable!!.setWellColor(painting!!.getPaintColor())
+    }
+
+    private fun PickColorfromDialog(): Int {
+        val builder = MaterialAlertDialogBuilder(this@PaintActivity)
+        builder
+            .setTitle("Pick a color")
+            .setPositiveButton("OK") { dialog, which ->
+
+            }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+        return Color.BLACK
     }
 
     private fun refreshNightMode(config: Configuration) {

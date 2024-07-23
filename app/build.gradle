@@ -13,10 +13,6 @@ android {
 	}
 }
 
-dependencies {
-    implementation(libs.androidx.appcompat)
-}
-
 android {
 	namespace = "com.jpb.android.paint"
 	compileSdk = 35
