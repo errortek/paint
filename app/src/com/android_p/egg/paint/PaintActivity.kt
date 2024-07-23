@@ -258,6 +258,9 @@ class PaintActivity : Activity() {
             allColor[5] = Color.YELLOW
             allColor[6] = Color.MAGENTA
             allColor[7] = Color.GRAY
+//            allColor[8] = Color.CYAN
+//            allColor[9] = Color.LTGRAY
+//            allColor[10] = Color.DKGRAY
             for (c in allColor) {
                 val icon = BrushPropertyDrawable(this)
                 icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
