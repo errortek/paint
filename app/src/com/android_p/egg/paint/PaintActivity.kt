@@ -38,7 +38,11 @@ import android.widget.Magnifier
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.jpb.android.paint.color.ColorAdapter
+import com.jpb.android.paint.color.GridSpacingItemDecoration
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -54,6 +58,7 @@ class PaintActivity : Activity() {
     private var colors: LinearLayout? = null
     private var magnifier: Magnifier? = null
     private var sampling = false
+    private lateinit var colorPickerDialog: AlertDialog
 
     private val buttonHandler = View.OnClickListener { view ->
         val id = view.id
@@ -283,9 +288,10 @@ class PaintActivity : Activity() {
             button.setOnClickListener {
                 this@PaintActivity.colors!!.isSelected = false
                 hideToolbar(this@PaintActivity.colors)
-                var c = Color.RED
-
-                painting!!.setPaintColor(c)
+                var c = showColorPickerDialog()
+                if (c != null) {
+                    painting!!.setPaintColor(c)
+                }
                 refreshBrushAndColor()
         }
             this.colors!!.addView(button, button_lp)
@@ -297,16 +303,48 @@ class PaintActivity : Activity() {
         colorButtonDrawable!!.setWellColor(painting!!.getPaintColor())
     }
 
-    private fun PickColorfromDialog(): Int {
-        val builder = MaterialAlertDialogBuilder(this@PaintActivity)
-        builder
-            .setTitle("Pick a color")
-            .setPositiveButton("OK") { dialog, which ->
+    private fun showColorPickerDialog(): Int? {
+        var selColor: Int? = null
 
+        val colors = listOf(
+            Color.CYAN, Color.rgb(179, 157, 219), Color.MAGENTA, Color.rgb(245, 245, 220), Color.YELLOW,
+            Color.rgb(169, 169, 169), Color.GREEN, Color.rgb(244, 164, 96), Color.BLUE, Color.RED,
+            Color.rgb(255, 228, 181), Color.rgb(72, 61, 139), Color.rgb(205, 92, 92), Color.rgb(255, 165, 0), Color.rgb(102, 205, 170)
+        )
+
+        val numColumns = 5 // Desired number of columns
+        val padding = dpToPx(15) // Convert 15 dp to pixels
+        val spacing = dpToPx(15) // Set the spacing between items in dp
+
+        val recyclerView = RecyclerView(this).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            layoutManager = GridLayoutManager(this@PaintActivity, numColumns)
+            setPadding(padding, dpToPx(20), padding, padding) // Convert padding to pixels
+            adapter = ColorAdapter(this@PaintActivity, colors) { selectedColor ->
+                // Do something with the selected color
+                painting?.setPaintColor(selectedColor)
+                colorPickerDialog.dismiss()
+                selColor = selectedColor
             }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
-        return Color.BLACK
+            addItemDecoration(GridSpacingItemDecoration(numColumns, spacing, true))
+        }
+
+        colorPickerDialog = AlertDialog.Builder(this)
+            .setTitle("Choose a color")
+            .setView(recyclerView)
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+        colorPickerDialog.show()
+        return selColor
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun refreshNightMode(config: Configuration) {
