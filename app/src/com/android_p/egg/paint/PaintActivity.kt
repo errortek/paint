@@ -281,7 +281,6 @@ class PaintActivity : Activity() {
             }
             val icon = BrushPropertyDrawable(this)
             icon.setFrameColor(ContextCompat.getColor(this, R.color.p_toolbar_icon_color))
-            icon.wellPaint.setTypeface(Typeface.DEFAULT)
             val button = ImageButton(this)
             button.setImageDrawable(icon)
             button.background = ContextCompat.getDrawable(this, R.drawable.p_toolbar_button_bg)
@@ -332,7 +331,7 @@ class PaintActivity : Activity() {
             addItemDecoration(GridSpacingItemDecoration(numColumns, spacing, true))
         }
 
-        colorPickerDialog = AlertDialog.Builder(this)
+        colorPickerDialog = MaterialAlertDialogBuilder(this)
             .setTitle("Choose a color")
             .setView(recyclerView)
             .setNegativeButton("Cancel") { dialog, _ ->
