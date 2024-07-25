@@ -17,6 +17,7 @@ package com.jpb.android.paint
 
 import android.app.Activity
 import android.content.ContentValues
+import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -59,6 +60,7 @@ class PaintActivity : Activity() {
     private var magnifier: Magnifier? = null
     private var sampling = false
     private lateinit var colorPickerDialog: AlertDialog
+    val isDebuggable = 0 != applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
 
     private val buttonHandler = View.OnClickListener { view ->
         val id = view.id
@@ -410,6 +412,27 @@ class PaintActivity : Activity() {
         val aboutBtn: ImageButton = findViewById(R.id.btnAbout)
         val saveBtn: ImageButton = findViewById(R.id.btnSave)
         aboutBtn.setOnClickListener {
+            if (isDebuggable) {
+                val builder = MaterialAlertDialogBuilder(this@PaintActivity)
+                builder
+                    .setTitle("About")
+                    .setMessage("jpb Paint, version 1.1\nDEBUG\nBased on the Android 9 \"Pie\" Easter egg, PAINT.APK\nLicensed under the Apache License, version 2.0")
+                    .setPositiveButton("OK") { dialog, which ->
+                        // Do something.
+                    }
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+            } else {
+                val builder = MaterialAlertDialogBuilder(this@PaintActivity)
+                builder
+                    .setTitle("About")
+                    .setMessage("jpb Paint, version 1.1\nBased on the Android 9 \"Pie\" Easter egg, PAINT.APK\nLicensed under the Apache License, version 2.0")
+                    .setPositiveButton("OK") { dialog, which ->
+                        // Do something.
+                    }
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+            }
             val builder = MaterialAlertDialogBuilder(this@PaintActivity)
             builder
                 .setTitle("About")
