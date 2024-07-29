@@ -123,4 +123,4 @@
         android:layout_height="match_parent"
         />
 
-</com.jpb.android.paint.CutoutAvoidingToolbar>
+</com.errortek.paint.CutoutAvoidingToolbar>
