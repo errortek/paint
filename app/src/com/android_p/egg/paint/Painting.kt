@@ -72,6 +72,10 @@ public class Painting : View, SpotFilter.Plotter {
         val TOUCH_STATS = "touch.stats" // Settings.System key
     }
 
+    private final int MAX_STACK_SIZE = 50;
+    private Stack<Pair<Float, Float>> undoStack = new Stack<>();
+    private Stack<Pair<Float, Float>> redoStack = new Stack<>();
+
     var devicePressureMin = 0f; // ideal value
     var devicePressureMax = 1f; // ideal value
 
