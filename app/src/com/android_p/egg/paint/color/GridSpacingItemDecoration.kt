@@ -1,4 +1,4 @@
-package com.jpb.android.paint.color
+package com.errortek.paint.color
 
 import android.graphics.Rect
 import android.view.View

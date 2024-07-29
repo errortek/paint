@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.jpb.android.paint
+package com.errortek.paint
 
 import android.content.Context
 import android.graphics.*

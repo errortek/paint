@@ -1,4 +1,4 @@
-package com.jpb.android.paint.color
+package com.errortek.paint.color
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.jpb.android.paint.R
+import com.errortek.paint.R
 
 class ColorAdapter(
     private val context: Context,

@@ -14,11 +14,11 @@ android {
 }
 
 android {
-	namespace = "com.jpb.android.paint"
+	namespace = "com.errortek.paint"
 	compileSdk = 35
 
 	defaultConfig {
-		applicationId = "com.jpb.android.paint"
+		applicationId = "com.errortek.paint"
 		minSdk = 22
 		targetSdk = 35
 		versionCode = 15

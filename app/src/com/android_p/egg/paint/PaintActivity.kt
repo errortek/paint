@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jpb.android.paint
+package com.errortek.paint
 
 import android.app.Activity
 import android.content.ContentValues
@@ -41,8 +41,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.jpb.android.paint.color.ColorAdapter
-import com.jpb.android.paint.color.GridSpacingItemDecoration
+import com.errortek.paint.color.ColorAdapter
+import com.errortek.paint.color.GridSpacingItemDecoration
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
