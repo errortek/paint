@@ -20,7 +20,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#666"
-    tools:context="com.jpb.android.paint.PaintActivity"
+    tools:context="com.errortek.paint.PaintActivity"
     android:id="@+id/contentView" >
 
     <include layout="@layout/p_toolbar"
